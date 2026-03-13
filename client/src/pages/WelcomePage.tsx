@@ -2,34 +2,30 @@ import { motion } from "framer-motion"
 import { ArrowRight, Terminal, Braces, Zap } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import FeaturesSection from "@/components/landing/FeaturesSection"
+import Prism from "@/components/landing/Prism"
 
 function WelcomePage() {
     const navigate = useNavigate()
 
     return (
         <div className="gradient-bg min-h-screen text-white">
-            {/* Decorative floating elements */}
-            <div className="pointer-events-none fixed inset-0 overflow-hidden">
-                <div
-                    className="absolute left-[10%] top-[20%] h-72 w-72 rounded-full opacity-[0.03]"
-                    style={{
-                        background:
-                            "radial-gradient(circle, #39E079 0%, transparent 70%)",
-                        animation: "float 6s ease-in-out infinite",
-                    }}
-                />
-                <div
-                    className="absolute right-[15%] top-[60%] h-96 w-96 rounded-full opacity-[0.03]"
-                    style={{
-                        background:
-                            "radial-gradient(circle, #34d8eb 0%, transparent 70%)",
-                        animation: "float 8s ease-in-out infinite 2s",
-                    }}
+            {/* Prism 3D Background */}
+            <div className="pointer-events-none fixed inset-0 z-0">
+                <Prism
+                    animationType="rotate"
+                    timeScale={0.5}
+                    height={3.5}
+                    baseWidth={5.5}
+                    scale={3.6}
+                    hueShift={0}
+                    colorFrequency={1}
+                    noise={0}
+                    glow={1}
                 />
             </div>
 
             {/* Hero Section */}
-            <section className="relative flex min-h-screen flex-col items-center justify-center px-6 text-center">
+            <section className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 text-center">
                 {/* Floating icon accents */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.5 }}
@@ -149,10 +145,12 @@ function WelcomePage() {
             </section>
 
             {/* Features Section */}
-            <FeaturesSection />
+            <div className="relative z-10">
+                <FeaturesSection />
+            </div>
 
             {/* Footer */}
-            <footer className="border-t border-white/5 px-6 py-8 text-center text-sm text-gray-500">
+            <footer className="relative z-10 border-t border-white/5 px-6 py-8 text-center text-sm text-gray-500">
                 <p>
                     Built with 💚 by the{" "}
                     <span className="text-primary">Code Fusion</span> team
