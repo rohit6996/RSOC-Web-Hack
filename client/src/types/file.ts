@@ -14,8 +14,9 @@ interface FileSystemItem {
 interface FileContext {
     fileStructure: FileSystemItem
     openFiles: FileSystemItem[]
+    setOpenFiles: (files: FileSystemItem[]) => void
     activeFile: FileSystemItem | null
-    setActiveFile: (file: FileSystemItem) => void
+    setActiveFile: (file: FileSystemItem | null) => void
     closeFile: (fileId: Id) => void
     toggleDirectory: (dirId: Id) => void
     collapseDirectories: () => void

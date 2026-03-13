@@ -784,6 +784,7 @@ function FileContextProvider({ children }: { children: ReactNode }) {
             value={{
                 fileStructure,
                 openFiles,
+                setOpenFiles,
                 activeFile,
                 setActiveFile,
                 closeFile,

@@ -76,6 +76,10 @@ function Sidebar() {
                     viewName={VIEWS.SETTINGS}
                     icon={viewIcons[VIEWS.SETTINGS]}
                 />
+                <SidebarButton
+                    viewName={VIEWS.GITHUB}
+                    icon={viewIcons[VIEWS.GITHUB]}
+                />
 
                 {/* Button to change activity state coding or drawing */}
                 <div className="flex h-fit items-center justify-center">

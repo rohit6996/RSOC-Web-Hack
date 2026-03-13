@@ -6,6 +6,11 @@ import { SocketEvent, SocketId } from "./types/socket"
 import { USER_CONNECTION_STATUS, User } from "./types/user"
 import { Server } from "socket.io"
 import path from "path"
+import fs from "fs"
+import { exec } from "child_process"
+import { promisify } from "util"
+
+const execAsync = promisify(exec)
 
 dotenv.config()
 
@@ -283,9 +288,92 @@ io.on("connection", (socket) => {
 			snapshot,
 		})
 	})
+
+	// Handle native PRs
+	socket.on(SocketEvent.REQUEST_PR, ({ pr }) => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+		socket.broadcast.to(roomId).emit(SocketEvent.REQUEST_PR, { pr })
+	})
+
+	socket.on(SocketEvent.UPDATE_PR, ({ pr, action }) => {
+		const roomId = getRoomId(socket.id)
+		if (!roomId) return
+		socket.broadcast.to(roomId).emit(SocketEvent.UPDATE_PR, { pr, action })
+	})
 })
 
 const PORT = process.env.PORT || 3000
+
+// --- Local Code Execution Engine (Piston-compatible) ---
+app.get("/api/v2/runtimes", (req: Request, res: Response) => {
+	res.json([
+		{ language: "javascript", version: "18.0.0", aliases: ["node", "js"] },
+		{ language: "typescript", version: "5.0.0", aliases: ["ts"] },
+		{ language: "python", version: "3.10.0", aliases: ["py", "python3"] },
+		{ language: "java", version: "17.0.0", aliases: ["java"] },
+		{ language: "c", version: "11.0.0", aliases: ["c", "gcc"] },
+		{ language: "cpp", version: "11.0.0", aliases: ["cpp", "c++", "g++"] },
+	])
+})
+
+app.post("/api/v2/execute", async (req: Request, res: Response) => {
+	const { language, files, stdin } = req.body
+	if (!files || files.length === 0) return res.status(400).json({ error: "No files provided" })
+
+	const code = files[0].content
+	const tempDir = path.join(__dirname, "..", "tmp_exec")
+	if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true })
+
+	const id = Math.random().toString(36).substring(7)
+	let filePath = ""
+	let executeCmd = ""
+    
+	try {
+        if (language === "javascript" || language === "js") {
+            filePath = path.join(tempDir, `${id}.js`)
+            fs.writeFileSync(filePath, code)
+            executeCmd = `node ${filePath}`
+        } else if (language === "typescript" || language === "ts") {
+            filePath = path.join(tempDir, `${id}.ts`)
+            fs.writeFileSync(filePath, code)
+            executeCmd = `npx ts-node ${filePath}`
+        } else if (language === "python" || language === "py") {
+            filePath = path.join(tempDir, `${id}.py`)
+            fs.writeFileSync(filePath, code)
+            executeCmd = `python ${filePath}`
+        } else if (language === "java") {
+            filePath = path.join(tempDir, `Main.java`)
+            fs.writeFileSync(filePath, code)
+            executeCmd = `cd ${tempDir} && javac Main.java && java Main`
+        } else if (language === "c" || language === "cpp" || language === "c++") {
+            const ext = language === "c" ? "c" : "cpp"
+            const compiler = language === "c" ? "gcc" : "g++"
+            filePath = path.join(tempDir, `${id}.${ext}`)
+            const outPath = path.join(tempDir, `${id}.exe`)
+            fs.writeFileSync(filePath, code)
+            executeCmd = `cd ${tempDir} && ${compiler} ${id}.${ext} -o ${id}.exe && .\\${id}.exe`
+        } else {
+            return res.status(400).json({ error: "Language not supported locally" })
+        }
+
+        // Handle stdin if provided
+        let runCmd = executeCmd
+        if (stdin) {
+            const stdinPath = path.join(tempDir, `${id}.in`)
+            fs.writeFileSync(stdinPath, stdin)
+            runCmd = `${executeCmd} < ${stdinPath}`
+        }
+
+        const { stdout, stderr } = await execAsync(runCmd, { timeout: 10000 })
+        res.json({ run: { stdout, stderr, code: 0 } })
+    } catch (err: any) {
+        res.json({ run: { stdout: err.stdout || "", stderr: err.stderr || err.message, code: err.code || 1 } })
+    } finally {
+        // Cleanup temp dir logic could go here
+    }
+})
+// ----------------------------------------------------
 
 app.get("/", (req: Request, res: Response) => {
 	// Send the index.html file
