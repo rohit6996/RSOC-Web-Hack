@@ -70,21 +70,6 @@
 5. **Local Network Access (Optional):**
    If you want to collaborate with other devices on your local Wi-Fi, change `VITE_BACKEND_URL` to your machine's local IP address (e.g., `http://192.168.1.5:3000`) and access the frontend via the network IP displayed in the Vite console.
 
-### Docker Installation
-
-1. **Install Docker Desktop.**
-2. **Pull Docker Images:**
-   ```bash
-   docker pull sahilatahar/code-sync-server:latest
-   docker pull sahilatahar/code-sync-client:latest
-   ```
-3. **Run Docker Containers:**
-   ```bash
-   docker run -d -p 3000:3000 --name code-sync-server sahilatahar/code-sync-server:latest
-   docker run -d -p 5173:5173 --name code-sync-client sahilatahar/code-sync-client:latest
-   ```
-
----
 
 ## 🤝 Contribute
 
